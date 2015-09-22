@@ -1,0 +1,10 @@
+## Global
+./**/Debug/
+*.log
+*.opensdf
+*.sdf
+*.user
+*.txt
+
+## Local
+Soil/
