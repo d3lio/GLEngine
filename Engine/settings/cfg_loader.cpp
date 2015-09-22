@@ -1,4 +1,4 @@
-#include "cfgLoader.h"
+#include "cfg_loader.h"
 #include <fstream>
 
 CfgLoader::CfgLoader()

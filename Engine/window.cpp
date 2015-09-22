@@ -1,4 +1,5 @@
 #include "window.h"
+#include <cstring>
 
 void errorCallback (int error, const char* description)
 {
@@ -7,9 +8,9 @@ void errorCallback (int error, const char* description)
 
 namespace Engine
 {
-    uint Window::refCount = 0;
+    uint Window::objCount = 0;
 
-    Window::Window()
+    Window::Window(const char* _name)
     {
         if (!glfwInit())
         {
@@ -17,21 +18,53 @@ namespace Engine
             abort();
         }
 
-        if (!refCount) {
+        if (!objCount) {
             glfwSetErrorCallback(errorCallback);
         }
 
+        if (_name) {
+            name = new char[strlen(_name)+1];
+            strcpy(name, _name);
+        }
+        else {
+            name = new char[11];
+            strcpy(name, "New window");
+        }
+
         window = NULL;
-        refCount++;
+
+        antialiasingSamples = (int)Hints::MSAA_4;
+        isResizable = false;
+        isWindowed = false;
+
+        OpenGLHints.majorVersion = 3;
+        OpenGLHints.minorVersion = 3;
+        OpenGLHints.profile = GLFW_OPENGL_CORE_PROFILE;
+
+        objCount++;
     }
     Window::~Window()
     {
         glfwDestroyWindow(window);
-        refCount--;
+
+        objCount--;
         
-        if (!refCount) {
+        if (!objCount) {
             glfwTerminate();
         }
+
+        delete name;
+    }
+
+    Window::operator GLFWwindow*() const
+    {
+        //__pragma (message("Warning: This function is unsafe due to giving direct access to private members."));
+        return window;
+    }
+
+    inline const char* Window::getTitle() const
+    {
+        return name;
     }
 
     inline GLFWwindow* Window::getHandle() const
@@ -40,45 +73,67 @@ namespace Engine
         return window;
     }
 
-    void Window::antialiasing(int hint)
+    void Window::antialiasing(Hints hint)
     {
-        glfwWindowHint(GLFW_SAMPLES, hint);
+        antialiasingSamples = (int)hint;
     }
 
-    void Window::resizable(int hint)
+    void Window::resizable(Hints hint)
     {
-        glfwWindowHint (GLFW_RESIZABLE, hint);
+        isResizable = (bool)hint;
+    }
+    
+    void Window::windowed(Hints hint)
+    {
+        isWindowed = (bool)hint;
     }
 
     void Window::setOpenGL(int majorVersion, int minorVersion, int profile)
     {
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, profile);
+        OpenGLHints.majorVersion = majorVersion;
+        OpenGLHints.minorVersion = minorVersion;
+        OpenGLHints.profile = profile;
     }
 
-    bool Window::create(const char* windowName, bool isWindowed, GLFWvidmode vm)
+    bool Window::create(const GLFWvidmode* vm)
     {
         glfwDestroyWindow(window);
 
-        if (vm.redBits)
+        if (!vm || !vm->width || !vm->height)
+            vm = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+        glfwWindowHint(GLFW_SAMPLES, antialiasingSamples);
+        glfwWindowHint(GLFW_RESIZABLE, isResizable);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OpenGLHints.majorVersion);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OpenGLHints.minorVersion);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, OpenGLHints.profile);
+
+        if (vm->redBits)
         {
-            glfwWindowHint(GLFW_ACCUM_RED_BITS, vm.redBits);
+            glfwWindowHint(GLFW_ACCUM_RED_BITS, vm->redBits);
         }
-        if (vm.greenBits)
+        if (vm->greenBits)
         {
-            glfwWindowHint(GLFW_ACCUM_GREEN_BITS, vm.greenBits);
+            glfwWindowHint(GLFW_ACCUM_GREEN_BITS, vm->greenBits);
         }
-        if (vm.blueBits)
+        if (vm->blueBits)
         {
-            glfwWindowHint(GLFW_ACCUM_BLUE_BITS, vm.blueBits);
+            glfwWindowHint(GLFW_ACCUM_BLUE_BITS, vm->blueBits);
         }
 
-        if (!vm.width || !vm.height)
-            vm = *const_cast<GLFWvidmode*>(glfwGetVideoMode(glfwGetPrimaryMonitor()));
+        window = glfwCreateWindow(
+            vm->width,
+            vm->height,
+            name,
+            (isWindowed? NULL: glfwGetPrimaryMonitor()),
+            NULL
+        );
 
-        window = glfwCreateWindow(vm.width, vm.height, windowName, (isWindowed? NULL: glfwGetPrimaryMonitor()), NULL);
-
-        return true;
+        if (!window)
+        {
+            fputs("Failed to open GLFW window.", stderr);
+            return false;
+        }
+        else return true;
     }
 }

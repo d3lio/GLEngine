@@ -3,7 +3,7 @@
 #define _SETTINGS_H_
 
 #include "utils/engine_defines.h"
-#include "cfgLoader.h"
+#include "cfg_loader.h"
 
 struct Resolution
 {

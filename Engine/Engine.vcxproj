@@ -131,7 +131,7 @@
     <ClCompile Include="commons\texture.cpp" />
     <ClCompile Include="commons\vboindexer.cpp" />
     <ClCompile Include="engine.cpp" />
-    <ClCompile Include="settings\cfgLoader.cpp" />
+    <ClCompile Include="settings\cfg_loader.cpp" />
     <ClCompile Include="settings\settings.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
@@ -145,7 +145,7 @@
     <ClInclude Include="commons\texture.hpp" />
     <ClInclude Include="commons\vboindexer.hpp" />
     <ClInclude Include="engine.h" />
-    <ClInclude Include="settings\cfgLoader.h" />
+    <ClInclude Include="settings\cfg_loader.h" />
     <ClInclude Include="settings\settings.h" />
     <ClInclude Include="utils\engine_defines.h" />
     <ClInclude Include="utils\engine_math.h" />

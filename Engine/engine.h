@@ -20,23 +20,29 @@ namespace Engine
     class Core
     {
     public:
-        ENGINE_APIENTRY Core(const char* settingsPath = NULL);
+        /**
+         * @brief Init the Core engine object with a main window name and a path to a settings file
+         */
+        ENGINE_APIENTRY Core(const char* mainWindowName = NULL, const char* settingsPath = NULL);
         ENGINE_APIENTRY ~Core();
 
     private:
-        ENGINE_APIENTRY Core(const Core& other);
-        ENGINE_APIENTRY Core& operator=(const Core& other);
+        /**
+         * Avoid using more than one Core object at a time.
+         * In the future this will be a singleton class.
+         */
+
+        ENGINE_APIENTRY __declspec(deprecated) Core(const Core& other);
+        ENGINE_APIENTRY __declspec(deprecated) Core& operator=(const Core& other);
 
     public:
-        ENGINE_APIENTRY int initGLFW();
-        ENGINE_APIENTRY int initGLEW();
-        ENGINE_APIENTRY int renderLoop();
+        /**
+         * @brief The render loop
+         */
+        ENGINE_APIENTRY int render();
 
     public:
-        ENGINE_APIENTRY void setWindowName(const char* name);
-
-        ENGINE_APIENTRY inline GLFWwindow* getRenderWindowHandler() const;
-        ENGINE_APIENTRY inline std::string getWindowName() const;
+        ENGINE_APIENTRY inline Window* getMainWindow() const;
 
     private:
 
@@ -44,10 +50,11 @@ namespace Engine
         bool draw();
 
     private:
-        GLFWwindow* renderWindow;
-        std::string windowName;
+        Window* mainWindow;
 
         Settings* settings;
+
+        static uint objCount;
     };
 }
 

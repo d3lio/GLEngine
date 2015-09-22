@@ -49,14 +49,14 @@
     <ClCompile Include="settings\settings.cpp">
       <Filter>settings</Filter>
     </ClCompile>
-    <ClCompile Include="settings\cfgLoader.cpp">
-      <Filter>settings</Filter>
-    </ClCompile>
     <ClCompile Include="commons\controls.cpp">
       <Filter>commons</Filter>
     </ClCompile>
     <ClCompile Include="window.cpp">
       <Filter>window</Filter>
+    </ClCompile>
+    <ClCompile Include="settings\cfg_loader.cpp">
+      <Filter>settings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,14 +93,14 @@
     <ClInclude Include="utils\engine_math.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="settings\cfgLoader.h">
-      <Filter>settings</Filter>
-    </ClInclude>
     <ClInclude Include="settings\settings.h">
       <Filter>settings</Filter>
     </ClInclude>
     <ClInclude Include="window.h">
       <Filter>window</Filter>
+    </ClInclude>
+    <ClInclude Include="settings\cfg_loader.h">
+      <Filter>settings</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

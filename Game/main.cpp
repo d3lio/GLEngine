@@ -3,14 +3,11 @@
 
 //using namespace Engine;
 
-Engine::Core engine("game.cfg");
+Engine::Core engine("Game", "game.cfg");
 
 int main (int argc, char** argv)
 {
-    engine.setWindowName("Game");
-    engine.initGLFW();
-    engine.initGLEW();
-    int retVal = engine.renderLoop();
+    int retVal = engine.render();
     
     return 0;
 }

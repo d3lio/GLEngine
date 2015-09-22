@@ -17,6 +17,7 @@
 #define ENGINE_APIENTRY __declspec(dllexport)
 
 typedef unsigned char byte;
+typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef long long int ll;

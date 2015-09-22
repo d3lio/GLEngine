@@ -8,78 +8,26 @@
 
 namespace Engine
 {
-    Core::Core(const char* settingsPath)
+    uint Core::objCount = 0;
+
+    Core::Core(const char* mainWindowName, const char* settingsPath)
     {
+        assert(objCount == 0);
         // need default values to remove this assertion
         assert(settingsPath != NULL);
 
         settings = new Settings(settingsPath);
-    }
-    Core::~Core()
-    {
-        delete settings;
 
-        glfwDestroyWindow(renderWindow);
-        glfwTerminate();
-    }
-    
-    void Core::setWindowName(const char* name)
-    {
-        windowName = name;
-    }
+        #pragma region GLFW
 
-    inline GLFWwindow* Core::getRenderWindowHandler() const
-    {
-        return renderWindow;
-    }
-
-    inline std::string Core::getWindowName() const
-    {
-        return windowName;
-    }
-
-
-    void errorCallback (int error, const char* description)
-    {
-        fputs (description, stderr);
-    }
-    int Core::initGLFW()
-    {
-        static bool inited = false;
-
-        if (inited)
-        {
-            return 0;
-        }
-
-        glfwSetErrorCallback(errorCallback);
-
-        // Init GLFW
-        if (!glfwInit())
-        {
-            fputs("Failed to initialize GLFW.", stderr);
-            return 0x01;
-        }
-
-
-        // antialiasing
-        glfwWindowHint(GLFW_SAMPLES, settings->getAntialiasing());
-
-
-        // resizable window
-        glfwWindowHint (GLFW_RESIZABLE, settings->getWindowed());
-        if (!settings->getWindowed() && settings->getFullscreen())
-            glfwWindowHint (GLFW_RESIZABLE, GL_FALSE);
-
-
-        // OpenGL 3.3
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        mainWindow = new Window(mainWindowName);
+        
+        mainWindow->antialiasing((Window::Hints) settings->getAntialiasing());
+        mainWindow->resizable((Window::Hints) settings->getWindowed());
+        mainWindow->windowed((Window::Hints) settings->getWindowed());
+        //mainWindow->setOpenGL(3, 3, GLFW_OPENGL_CORE_PROFILE);
 	    //glfwWindowHint (GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); // So that glBegin/glVertex/glEnd work
 
-
-        // resoution
         Resolution res;
         if (settings->getFullscreen()) {
             res = settings->getFullscreenResolution();
@@ -88,54 +36,24 @@ namespace Engine
             res = settings->getWindowedResolution();
         }
 
-        if (res.width == 0 || res.height == 0)
+        if (!res.width || !res.height)
         {
             const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
             res.width = mode->width;
             res.height = mode->height;
         }
 
+        mainWindow->create();
 
-        // create window
-        if (settings->getWindowed()) {
-            renderWindow = glfwCreateWindow(res.width, res.height, windowName.c_str(), NULL, NULL);
-        }
-        else {
-            renderWindow = glfwCreateWindow(res.width, res.height, windowName.c_str(), glfwGetPrimaryMonitor(), NULL);
-        }
-
-        if (!renderWindow)
-        {
-            // "If you have an Intel GPU, they are not 3.3 compatible.\n"
-            fputs("Failed to open GLFW renderWindow.", stderr);
-            glfwTerminate();
-            return 0x02;
-        }
-
-        glfwMakeContextCurrent(renderWindow);
-
-        // vsync
+        glfwMakeContextCurrent(mainWindow->getHandle());
         glfwSwapInterval(settings->getVsync());
+        glfwSetInputMode(mainWindow->getHandle(), GLFW_STICKY_KEYS, GL_TRUE);
+        glfwSetCursorPos(mainWindow->getHandle(), res.width/2, res.height/2);
 
-
-        glfwSetInputMode(renderWindow, GLFW_STICKY_KEYS, GL_TRUE);
-        glfwSetCursorPos(renderWindow, res.width/2, res.height/2);
-
-        inited = true;
-        return 0;
-    }
-
-    int Core::initGLEW()
-    {
-        static bool inited = false;
-
-        if (inited)
-        {
-            return 0;
-        }
-
-
-        if (glfwGetWindowAttrib(renderWindow, GLFW_OPENGL_PROFILE) == GLFW_OPENGL_CORE_PROFILE)
+        #pragma endregion GLFW
+        #pragma region GLEW
+        
+        if (glfwGetWindowAttrib(mainWindow->getHandle(), GLFW_OPENGL_PROFILE) == GLFW_OPENGL_CORE_PROFILE)
         {
             glewExperimental = true; // Needed in core profile
         }
@@ -144,27 +62,35 @@ namespace Engine
         {
             fputs("Failed to initialize GLEW.", stderr);
             glfwTerminate();
-            return 0x03;
+            abort();
         }
-
-
+        
         printf("Renderer:\t%s\n", glGetString (GL_RENDERER));
         printf("OpenGL: \t%s\n", glGetString (GL_VERSION));
         printf("\n");
 
-
         glEnable(GL_DEPTH_TEST);   // Enable depth test
         glDepthFunc(GL_LESS);      // Accept fragment if it closer to the camera than the former one
 	    glEnable(GL_CULL_FACE);    // Cull triangles which normal is not towards the camera
-    
+        glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // Background color
 
-	    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+        #pragma endregion GLEW
 
-        inited = true;
-        return 0;
+        objCount++;
     }
 
-    int Core::renderLoop()
+    Core::~Core()
+    {
+        delete settings;
+        delete mainWindow;
+    }
+
+    inline Window* Core::getMainWindow() const
+    {
+        return mainWindow;
+    }
+
+    int Core::render()
     {
         GLuint vertexArrayID;
         glGenVertexArrays (1, &vertexArrayID);
@@ -253,7 +179,11 @@ namespace Engine
 
             glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            computeMatricesFromInputs (renderWindow, glfwGetVideoMode(glfwGetPrimaryMonitor())->width, glfwGetVideoMode(glfwGetPrimaryMonitor())->height);
+            computeMatricesFromInputs (
+                mainWindow->getHandle(),
+                glfwGetVideoMode(glfwGetPrimaryMonitor())->width,
+                glfwGetVideoMode(glfwGetPrimaryMonitor())->height
+            );
             projMatrix  = getProjectionMatrix ();
             viewMatrix  = getViewMatrix ();
             modelMatrix = glm::mat4 (1.0f);
@@ -311,11 +241,11 @@ namespace Engine
             glDisableVertexAttribArray (1);
             glDisableVertexAttribArray (2);
 
-            glfwSwapBuffers (renderWindow);
+            glfwSwapBuffers (mainWindow->getHandle());
             glfwPollEvents ();
         }
-        while (glfwGetKey (renderWindow, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-               glfwWindowShouldClose (renderWindow) == GL_FALSE);
+        while (glfwGetKey (mainWindow->getHandle(), GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+               glfwWindowShouldClose (mainWindow->getHandle()) == GL_FALSE);
     
 	    // Cleanup VBO
 	    glDeleteBuffers(1, &vertexBuffer);
@@ -326,7 +256,7 @@ namespace Engine
         glDeleteProgram (programID);
 
         glDeleteVertexArrays (1, &vertexArrayID);
-        //glfwDestroyWindow (renderWindow);
+        //glfwDestroyWindow (mainWindow->getHandle());
 
         //glfwTerminate ();
 
