@@ -34,8 +34,8 @@ namespace Engine
         window = NULL;
 
         antialiasingSamples = (int)Hints::MSAA_4;
-        isResizable = false;
-        isWindowed = false;
+        _isResizable = false;
+        _isWindowed = false;
 
         OpenGLHints.majorVersion = 3;
         OpenGLHints.minorVersion = 3;
@@ -73,6 +73,26 @@ namespace Engine
         return window;
     }
 
+    inline int Window::getAntSamples() const
+    {
+        return antialiasingSamples;
+    }
+
+    inline bool Window::isResizable() const
+    {
+        return _isResizable;
+    }
+
+    inline bool Window::isWindowed() const
+    {
+        return _isWindowed;
+    }
+    
+    inline Window::OGH Window::getOpenGL() const
+    {
+        return OpenGLHints;
+    }
+
     void Window::antialiasing(Hints hint)
     {
         antialiasingSamples = (int)hint;
@@ -80,12 +100,12 @@ namespace Engine
 
     void Window::resizable(Hints hint)
     {
-        isResizable = (bool)hint;
+        _isResizable = (bool)((int)hint&1);
     }
     
     void Window::windowed(Hints hint)
     {
-        isWindowed = (bool)hint;
+        _isWindowed = (bool)((int)hint&1);
     }
 
     void Window::setOpenGL(int majorVersion, int minorVersion, int profile)
@@ -103,7 +123,7 @@ namespace Engine
             vm = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
         glfwWindowHint(GLFW_SAMPLES, antialiasingSamples);
-        glfwWindowHint(GLFW_RESIZABLE, isResizable);
+        glfwWindowHint(GLFW_RESIZABLE, _isResizable);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OpenGLHints.majorVersion);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OpenGLHints.minorVersion);
         glfwWindowHint(GLFW_OPENGL_PROFILE, OpenGLHints.profile);
@@ -125,7 +145,7 @@ namespace Engine
             vm->width,
             vm->height,
             name,
-            (isWindowed? NULL: glfwGetPrimaryMonitor()),
+            (_isWindowed? NULL: glfwGetPrimaryMonitor()),
             NULL
         );
 

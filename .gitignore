@@ -1,10 +1,13 @@
 ## Global
-./**/Debug/
+**/Debug/
 *.log
 *.opensdf
 *.sdf
 *.user
 *.txt
+
+!/Debug/glew32.dll
+!/Debug/glfw32.dll
 
 ## Local
 Soil/

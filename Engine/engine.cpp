@@ -12,14 +12,12 @@ namespace Engine
 
     Core::Core(const char* mainWindowName, const char* settingsPath)
     {
+        // imitate singleton class
         assert(objCount == 0);
         // need default values to remove this assertion
         assert(settingsPath != NULL);
 
         settings = new Settings(settingsPath);
-
-        #pragma region GLFW
-
         mainWindow = new Window(mainWindowName);
         
         mainWindow->antialiasing((Window::Hints) settings->getAntialiasing());
@@ -50,8 +48,6 @@ namespace Engine
         glfwSetInputMode(mainWindow->getHandle(), GLFW_STICKY_KEYS, GL_TRUE);
         glfwSetCursorPos(mainWindow->getHandle(), res.width/2, res.height/2);
 
-        #pragma endregion GLFW
-        #pragma region GLEW
         
         if (glfwGetWindowAttrib(mainWindow->getHandle(), GLFW_OPENGL_PROFILE) == GLFW_OPENGL_CORE_PROFILE)
         {
@@ -73,8 +69,6 @@ namespace Engine
         glDepthFunc(GL_LESS);      // Accept fragment if it closer to the camera than the former one
 	    glEnable(GL_CULL_FACE);    // Cull triangles which normal is not towards the camera
         glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // Background color
-
-        #pragma endregion GLEW
 
         objCount++;
     }

@@ -17,6 +17,13 @@ namespace Engine
      */
     class Window
     {
+        // OpenGL version and profile holder
+        struct OGH {
+            int majorVersion;
+            int minorVersion;
+            int profile;
+        };
+
     public:
 
         /**
@@ -36,7 +43,7 @@ namespace Engine
 
         /**
          * Avoid using more than one Window object at a time.
-         * When referring a Window object use a smart pointer
+         * Be careful when referring a Window object
          * since the dtor will terminate glfw.
          */
 
@@ -58,6 +65,26 @@ namespace Engine
          * @remarks Unsafe, use with caution.
          */
         ENGINE_APIENTRY inline GLFWwindow* getHandle() const;
+
+        /**
+         * Get the number of samples per pixel
+         */
+        ENGINE_APIENTRY inline int getAntSamples() const;
+        
+        /**
+         * Get a boolean value whether the window is resizable
+         */
+        ENGINE_APIENTRY inline bool isResizable() const;
+        
+        /**
+         * Get a boolean value whether the window was created in windowed mode
+         */
+        ENGINE_APIENTRY inline bool isWindowed() const;
+
+        /**
+         * Get a struct with the OpenGL version and profile
+         */
+        ENGINE_APIENTRY inline OGH getOpenGL() const;
 
     public:
 
@@ -89,7 +116,7 @@ namespace Engine
         ENGINE_APIENTRY void resizable(Hints hint);
         
         /**
-         * @brief Sets whether the window is in windowed mode.
+         * @brief Sets whether to create the window in windowed mode.
          *
          * @param[in] hint The value to be passed (true/false).
          */
@@ -120,14 +147,10 @@ namespace Engine
 
         int antialiasingSamples;
 
-        struct {
-            int majorVersion;
-            int minorVersion;
-            int profile;
-        } OpenGLHints;
+        OGH OpenGLHints;
         
-        bool isResizable;
-        bool isWindowed;
+        bool _isResizable;
+        bool _isWindowed;
     
     private:
 
